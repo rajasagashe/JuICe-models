@@ -1,4 +1,4 @@
-# Juice Models
+# JuICe Models
 ## Setup
 Install conda. Then prepare environment:
 
