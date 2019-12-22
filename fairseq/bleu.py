@@ -103,6 +103,28 @@ class Metric():
     def avg(lst):
         return sum(lst)/len(lst) * 100
 
+    def compute_precision_recall_f1(self, test, preds):
+        precisions = []
+        recalls = []
+        f1s = []
+        for targ, pred in zip(test, preds):
+            targ_set = set(targ[self.target_key])
+            pred_set = set(pred[self.pred_key])
+            # print('===========')
+            # print(targ_set)
+            # print(pred_set)
+            num_correct = len(targ_set & pred_set)
+            num_pred = len(pred_set)
+            num_target = len(targ_set)
+
+            p = num_correct / num_pred if num_pred > 0 else 0
+            r = num_correct / num_target if num_target > 0 else 0
+            f1 = 2 * p * r / (p + r) if p + r > 0 else 0
+            precisions.append(p)
+            recalls.append(r)
+            f1s.append(f1)
+        return self.avg(precisions), self.avg(recalls), self.avg(f1s)
+
     def compute_metrics_helper(self, test, preds, epoch):
         if len(test) != preds:
             # if trunc param was passed preds will be shorter so we truncate.
@@ -113,6 +135,11 @@ class Metric():
         metrics_dict['bleu'] = self.compute_bleu(test, preds)
         metrics_dict['em'] = self.compute_em(test, preds)
         metrics_dict['corpus_bleu'] = self.compute_corpus_bleu(test, preds)
+
+        p, r, f1 = self.compute_precision_recall_f1(test, preds)
+        metrics_dict['precision'] = p
+        metrics_dict['recall'] = r
+        metrics_dict['f1'] = f1
 
 
         # we need to pass index since values are scalars and not lists
